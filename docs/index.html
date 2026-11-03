@@ -1,0 +1,231 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Seeing Beyond the Next Step</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="description" content="Seeing Beyond the Next Step: World-Model-Guided Human-Like Navigation in Multi-Agent Scenes (NeurIPS 2026)">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;700&family=Source+Serif+4:opsz,wght@8..60,600&family=Source+Code+Pro:wght@400&display=swap">
+<style>
+/* Layout: conventional single-column paper page, centered header, figures at full column width. */
+:root{
+  --bg:#FFFFFF;
+  --fg:#1C1F23;
+  --muted:#5F6670;
+  --line:#E3E6EA;
+  --soft:#F5F6F8;
+  --link:#1F5FAD;
+  --accent:#D9362C;
+  --flag:#1E9CC4;
+  --road:#3A434C;
+  --walk:#C9CFD5;
+  --paint:#EEF1F3;
+  --ink:#14202B;
+  --f-title:"Source Serif 4",Georgia,serif;
+  --f-body:"Noto Sans","Segoe UI",Helvetica,Arial,sans-serif;
+  --f-mono:"Source Code Pro",ui-monospace,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#121417;--fg:#E4E7EB;--muted:#9AA3AD;--line:#2A2F35;--soft:#1A1E22;--link:#7FB0EA;
+  --accent:#FF5A4E;--flag:#45C0E6;--road:#222B33;--walk:#38434D;--paint:#8A98A4;--ink:#0B1015;color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#121417;--fg:#E4E7EB;--muted:#9AA3AD;--line:#2A2F35;--soft:#1A1E22;--link:#7FB0EA;
+  --accent:#FF5A4E;--flag:#45C0E6;--road:#222B33;--walk:#38434D;--paint:#8A98A4;--ink:#0B1015;color-scheme:dark}
+
+*{box-sizing:border-box}
+html{color-scheme:light}
+body{margin:0}
+img{max-width:100%}
+body{background:var(--bg);color:var(--fg);font:400 16px/1.7 var(--f-body);
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+a{color:var(--link);text-decoration:none}
+a:hover{text-decoration:underline}
+:focus-visible{outline:2px solid var(--link);outline-offset:2px}
+.col{max-width:920px;margin:0 auto}
+p{margin:0 0 1em}
+
+header{padding-block:56px 28px;text-align:center}
+h1{font:600 clamp(28px,4.4vw,42px)/1.2 var(--f-title);margin:0 0 6px;text-wrap:balance;letter-spacing:-.01em}
+.sub{font:600 clamp(18px,2.4vw,24px)/1.35 var(--f-title);color:var(--muted);margin:0 0 22px;text-wrap:balance}
+.authors{font-size:18px;margin:0 0 4px;display:flex;flex-wrap:wrap;justify-content:center;gap:2px 20px}
+.authors sup,.affil sup{font-size:11px}
+.affil{color:var(--muted);margin:0 0 2px;display:flex;flex-wrap:wrap;justify-content:center;gap:2px 20px}
+.note{font-size:13px;color:var(--muted);margin:0 0 14px}
+.venue{font-weight:700;font-size:17px;margin:0 0 20px}
+.links{display:flex;flex-wrap:wrap;justify-content:center;gap:10px}
+.links a,.links span{display:inline-flex;align-items:center;gap:7px;padding:8px 18px;border-radius:999px;background:#33373C;color:#fff;font-size:15px;font-weight:500}
+.links a:hover{background:#111;text-decoration:none}
+.links span{background:var(--soft);color:var(--muted);border:1px solid var(--line)}
+.links svg{width:16px;height:16px;fill:currentColor}
+
+.street{margin:8px auto 0;border-radius:4px;overflow:hidden;background:var(--walk)}
+.street canvas{display:block;width:100%;height:clamp(220px,32vw,330px)}
+
+section{padding-block:40px 8px}
+h2{font:700 26px/1.3 var(--f-body);margin:0 0 16px;text-align:center}
+.lead{font-size:18px;line-height:1.6;text-align:center;max-width:680px;margin:0 auto 4px;text-wrap:balance}
+.just{text-align:justify;hyphens:auto}
+figure{margin:20px 0 8px}
+figure img{display:block;width:100%;height:auto;border-radius:3px;background:#fff}
+figcaption{font-size:14px;line-height:1.6;color:var(--muted);margin-top:8px}
+figcaption b{color:var(--fg)}
+
+.eq{overflow-x:auto;text-align:center;font:400 18px/1.4 var(--f-title);padding-block:10px;white-space:nowrap}
+ul.plain{margin:0 0 1em;padding-left:20px}
+ul.plain li{margin-bottom:4px}
+
+.tbl{overflow-x:auto;margin:16px 0 6px}
+table{border-collapse:collapse;margin:0 auto;font-size:14.5px;font-variant-numeric:tabular-nums;min-width:560px;width:100%}
+caption{caption-side:top;text-align:left;font-size:14px;color:var(--muted);padding-bottom:8px}
+caption b{color:var(--fg)}
+th,td{padding:6px 10px;text-align:center;border-bottom:1px solid var(--line)}
+thead th{border-top:1.5px solid var(--fg);border-bottom:1px solid var(--fg);font-weight:700}
+tbody tr:last-child td{border-bottom:1.5px solid var(--fg)}
+th:first-child,td:first-child{text-align:left}
+td.best{font-weight:700}
+tr.grp td{border-top:1px solid var(--muted)}
+tr.ours td{background:var(--soft)}
+
+pre{margin:0;overflow-x:auto;background:var(--soft);border-radius:4px;padding:16px 18px;font:400 13.5px/1.6 var(--f-mono)}
+.bib{position:relative}
+.copy{position:absolute;top:8px;right:8px;font:500 12px var(--f-body);padding:5px 10px;border-radius:4px;border:1px solid var(--line);background:var(--bg);color:var(--fg);cursor:pointer}
+footer{padding-block:48px 40px;font-size:13px;color:var(--muted);text-align:center}
+</style>
+</head>
+<body>
+
+<header class="col">
+  <h1>Seeing Beyond the Next Step</h1>
+  <p class="sub">World-Model-Guided Human-Like Navigation in Multi-Agent Scenes</p>
+  <div class="authors">
+    <span>Seong-Eun Hong<sup>1*</sup></span>
+    <span>JuYeong Hwang<sup>1*</sup></span>
+    <span>Jinhyun Kim<sup>1</sup></span>
+    <span>Hanyoung Jang<sup>2</sup></span>
+    <span>HyeongYeop Kang<sup>1†</sup></span>
+  </div>
+  <div class="affil"><span><sup>1</sup>Korea University</span><span><sup>2</sup>NC AI</span></div>
+  <p class="note">*Equal contribution &nbsp; †Corresponding author</p>
+  <p class="venue">NeurIPS 2026</p>
+  <div class="links">
+    <span><svg viewBox="0 0 24 24"><path d="M6 2h9l5 5v15H6z"/></svg>Paper (coming soon)</span>
+    <span><svg viewBox="0 0 24 24"><path d="M4 4h16v16H4z"/></svg>arXiv (coming soon)</span>
+    <a href="https://github.com/seoneun/-NeurIPS-2026-Seeing-Beyond-the-Next-Step" target="_blank" rel="noopener"><svg viewBox="0 0 24 24"><path d="M12 .5a11.5 11.5 0 0 0-3.6 22.4c.6.1.8-.3.8-.6v-2c-3.2.7-3.9-1.5-3.9-1.5-.5-1.3-1.3-1.7-1.3-1.7-1-.7.1-.7.1-.7 1.2.1 1.8 1.2 1.8 1.2 1 1.8 2.8 1.3 3.5 1 .1-.8.4-1.3.7-1.6-2.6-.3-5.3-1.3-5.3-5.7 0-1.3.5-2.3 1.2-3.1-.1-.3-.5-1.5.1-3.1 0 0 1-.3 3.2 1.2a11 11 0 0 1 5.8 0C17.3 4.3 18.3 4.6 18.3 4.6c.6 1.6.2 2.8.1 3.1.8.8 1.2 1.8 1.2 3.1 0 4.4-2.7 5.4-5.3 5.7.4.4.8 1.1.8 2.2v3.3c0 .3.2.7.8.6A11.5 11.5 0 0 0 12 .5z"/></svg>Code</a>
+  </div>
+</header>
+
+<div class="col">
+  <div class="street"><canvas id="street" aria-label="Top-down street animation of agents choosing among candidate motions"></canvas></div>
+</div>
+
+<section class="col">
+  <p class="lead">World models are used only at training time, as a preference oracle. At deployment they are removed and the policy acts in a single forward pass.</p>
+  <figure>
+    <img src="static/teaser.png" alt="Overview of the two-stage training pipeline" loading="lazy">
+  </figure>
+</section>
+
+<section class="col">
+  <h2>Results</h2>
+  <figure>
+    <img src="static/crosswalk.jpg" alt="Crosswalk navigation compared with CCP, CEDRL and GBM" loading="lazy">
+    <figcaption>Crosswalk. Baselines cut across the road; ours stays on the crosswalk.</figcaption>
+  </figure>
+  <figure>
+    <img src="static/group.jpg" alt="Group navigation compared with CCP, CEDRL and GBM" loading="lazy">
+    <figcaption>Group navigation.</figcaption>
+  </figure>
+  <figure>
+    <img src="static/alley.jpg" alt="Narrow alley with an approaching vehicle" loading="lazy">
+    <figcaption>Narrow alley with an approaching vehicle.</figcaption>
+  </figure>
+  <figure>
+    <img src="static/ablation.png" alt="Ours with and without the dual world models" loading="lazy">
+    <figcaption>With and without the dual world models.</figcaption>
+  </figure>
+</section>
+
+<section class="col" id="bibtex">
+  <h2>BibTeX</h2>
+  <div class="bib">
+    <button class="copy" id="copy-bib" type="button">Copy</button>
+<pre id="bib-text">@inproceedings{hong2026seeing,
+  title     = {Seeing Beyond the Next Step: World-Model-Guided Human-Like Navigation in Multi-Agent Scenes},
+  author    = {Hong, Seong-Eun and Hwang, JuYeong and Kim, Jinhyun and Jang, Hanyoung and Kang, HyeongYeop},
+  booktitle = {Advances in Neural Information Processing Systems (NeurIPS)},
+  year      = {2026}
+}</pre>
+  </div>
+</section>
+
+<footer class="col">Contact: seong_eun@korea.ac.kr</footer>
+
+<script>
+(function(){
+const cb=document.getElementById("copy-bib");
+cb.addEventListener("click",()=>{const t=document.getElementById("bib-text");
+  const sel=()=>{const r=document.createRange();r.selectNodeContents(t);const s=getSelection();s.removeAllRanges();s.addRange(r);cb.textContent="Press Ctrl+C"};
+  try{navigator.clipboard.writeText(t.textContent).then(()=>{cb.textContent="Copied";setTimeout(()=>cb.textContent="Copy",1600)},sel)}catch(e){sel()}});
+
+/* street sketch */
+const cv=document.getElementById("street"),cx=cv.getContext("2d");
+const reduce=matchMedia("(prefers-reduced-motion: reduce)").matches;
+let W=0,H=0,C={},agents=[],crowd=[];
+function tok(){const s=getComputedStyle(document.documentElement);["road","walk","paint","accent","flag","ink"].forEach(k=>C[k]=s.getPropertyValue("--"+k).trim())}
+const road=()=>({y0:H*.34,y1:H*.66}),xw=()=>({x0:W*.52,x1:W*.66});
+function inRoad(x,y){const r=road();return y>r.y0&&y<r.y1}
+function onCross(x){const c=xw();return x>c.x0+4&&x<c.x1-4}
+function resize(){const r=cv.getBoundingClientRect(),d=Math.min(2,devicePixelRatio||1);W=r.width;H=r.height;cv.width=W*d;cv.height=H*d;cx.setTransform(d,0,0,d,0,0);seed()}
+function rnd(a,b){return a+Math.random()*(b-a)}
+function spawnEgo(a,i){const down=Math.random()<.5,r=road(),c=xw();
+  a.x=rnd(W*.08,W*.92);a.y=down?rnd(r.y1+18,H-18):rnd(14,r.y0-18);
+  a.gx=rnd(c.x0+12,c.x1-12);a.gy=down?rnd(12,r.y0-22):rnd(r.y1+22,H-12);a.trail=[];a.cands=[];a.best=null;a.tick=i*7}
+function seed(){agents=[];crowd=[];for(let i=0;i<4;i++){const a={};spawnEgo(a,i);agents.push(a)}
+  const r=road();for(let i=0;i<14;i++){const top=i%2===0;crowd.push({x:rnd(0,W),y:top?rnd(16,r.y0-14):rnd(r.y1+14,H-16),vx:(top?1:-1)*rnd(.25,.6),vy:0,trail:[]})}}
+function plan(a){
+  const base=Math.atan2(a.gy-a.y,a.gx-a.x),L=Math.min(80,W*.09),T=40;let best=null,bs=-1e9;a.cands=[];
+  for(let i=0;i<10;i++){const ang=base+(i-4.5)*.3,cur=(i%3-1)*.25;
+    const ex=a.x+Math.cos(ang)*L,ey=a.y+Math.sin(ang)*L,mx=a.x+Math.cos(ang-cur)*L*.5,my=a.y+Math.sin(ang-cur)*L*.5;
+    let s=-Math.hypot(a.gx-ex,a.gy-ey),bad=false;
+    for(const [px,py] of [[mx,my],[ex,ey]]){if(inRoad(px,py)&&!onCross(px)){s-=400;bad=true}}
+    for(const o of crowd.concat(agents)){if(o===a)continue;const ox=o.x+(o.vx||0)*T,oy=o.y+(o.vy||0)*T;if(Math.hypot(ox-ex,oy-ey)<22||Math.hypot(ox-mx,oy-my)<16){s-=250;bad=true}}
+    if(ex<4||ex>W-4||ey<4||ey>H-4){s-=500;bad=true}
+    const c={mx,my,ex,ey,bad};a.cands.push(c);if(s>bs){bs=s;best=c}}
+  a.best=best;
+}
+function step(){
+  for(const o of crowd){o.x+=o.vx;if(o.x>W+10||o.x<-10){o.x=o.x>0?-10:W+10;o.trail=[]}o.trail.push([o.x,o.y]);if(o.trail.length>40)o.trail.shift()}
+  for(const a of agents){if(a.tick--<=0){plan(a);a.tick=14}
+    if(a.best){const dx=a.best.mx-a.x,dy=a.best.my-a.y,d=Math.hypot(dx,dy)||1;a.vx=dx/d*.75;a.vy=dy/d*.75;a.x+=a.vx;a.y+=a.vy}
+    a.trail.push([a.x,a.y]);if(a.trail.length>90)a.trail.shift();
+    if(Math.hypot(a.gx-a.x,a.gy-a.y)<14)spawnEgo(a,0)}
+}
+function line(pts,col,w,alpha,dash){cx.save();cx.globalAlpha=alpha;cx.strokeStyle=col;cx.lineWidth=w;cx.lineCap="round";cx.lineJoin="round";if(dash)cx.setLineDash(dash);cx.beginPath();pts.forEach((p,i)=>i?cx.lineTo(p[0],p[1]):cx.moveTo(p[0],p[1]));cx.stroke();cx.restore()}
+function draw(){
+  const r=road(),c=xw();
+  cx.fillStyle=C.walk;cx.fillRect(0,0,W,H);
+  cx.fillStyle=C.road;cx.fillRect(0,r.y0,W,r.y1-r.y0);
+  cx.fillStyle=C.paint;cx.globalAlpha=.9;
+  for(let x=c.x0;x<c.x1;x+=14)cx.fillRect(x,r.y0+6,8,r.y1-r.y0-12);
+  cx.globalAlpha=.5;for(let x=10;x<W;x+=46){if(x>c.x0-30&&x<c.x1+10)continue;cx.fillRect(x,(r.y0+r.y1)/2-1.5,24,3)}
+  cx.globalAlpha=1;
+  for(const o of crowd){if(o.trail.length>1)line(o.trail,C.ink,3,.28);cx.fillStyle=C.ink;cx.globalAlpha=.75;cx.beginPath();cx.arc(o.x,o.y,3.6,0,7);cx.fill();cx.globalAlpha=1}
+  for(const a of agents){
+    for(const k of a.cands){if(k===a.best)continue;line([[a.x,a.y],[k.mx,k.my],[k.ex,k.ey]],k.bad?C.flag:C.paint,1.4,k.bad?.75:.6,[3,4])}
+    if(a.trail.length>1)line(a.trail,C.accent,4.5,.85);
+    if(a.best)line([[a.x,a.y],[a.best.mx,a.best.my],[a.best.ex,a.best.ey]],C.accent,2.4,1);
+    cx.fillStyle="#fff";cx.beginPath();cx.arc(a.x,a.y,4.6,0,7);cx.fill();cx.strokeStyle=C.accent;cx.lineWidth=2;cx.stroke()}
+}
+function loop(){step();draw();requestAnimationFrame(loop)}
+tok();resize();
+addEventListener("resize",resize);
+matchMedia("(prefers-color-scheme: dark)").addEventListener("change",tok);
+new MutationObserver(tok).observe(document.documentElement,{attributes:true,attributeFilter:["data-theme"]});
+if(reduce){for(let i=0;i<240;i++)step();draw()}else{for(let i=0;i<120;i++)step();loop()}
+})();
+</script>
+</body>
+</html>
