@@ -89,9 +89,14 @@ h2{font:700 24px/1.3 var(--f-body);margin:0 0 16px;text-align:center}
 figure{margin:0}
 figure img{display:block;width:100%;height:auto;border-radius:3px;background:#fff}
 
-pre{margin:0;overflow-x:auto;background:var(--soft);border-radius:6px;padding:16px 18px;font:400 13.5px/1.6 var(--f-mono)}
-.bib{position:relative}
-.copy{position:absolute;top:8px;right:8px;font:500 12px var(--f-body);padding:5px 10px;border-radius:4px;border:1px solid var(--line);background:var(--bg);color:var(--fg);cursor:pointer}
+section figure img{box-shadow:0 0 0 1px var(--line)}
+.duo{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;max-width:640px;margin:0 auto 18px}
+.duo div{display:grid;gap:2px;text-align:center;padding:14px 12px;border-radius:8px;background:var(--stage)}
+.duo b{font-size:16px}
+.duo span{font-size:14px;color:var(--muted)}
+.segview{display:grid;gap:14px;justify-items:center}
+.segview figure{width:100%}
+.seg.small{background:var(--stage)}
 footer{padding-block:48px 40px;font-size:13px;color:var(--muted);text-align:center}
 @media (prefers-reduced-motion:reduce){.frames img{transition:none}.vs button i.run{animation:none}}
 </style>
@@ -134,21 +139,30 @@ footer{padding-block:48px 40px;font-size:13px;color:var(--muted);text-align:cent
 </div>
 
 <section class="col">
+  <h2>Method</h2>
   <p class="lead">World models are used only at training time, as a preference oracle. At deployment they are removed and the policy acts in a single forward pass.</p>
   <figure><img src="static/teaser.png" alt="Overview of the two-stage training pipeline" loading="lazy"></figure>
 </section>
 
-<section class="col" id="bibtex">
-  <h2>BibTeX</h2>
-  <div class="bib">
-    <button class="copy" id="copy-bib" type="button">Copy</button>
-<pre id="bib-text">@inproceedings{hong2026seeing,
-  title     = {Seeing Beyond the Next Step: World-Model-Guided Human-Like Navigation in Multi-Agent Scenes},
-  author    = {Hong, Seong-Eun and Hwang, JuYeong and Kim, Jinhyun and Jang, Hanyoung and Kang, HyeongYeop},
-  booktitle = {Advances in Neural Information Processing Systems (NeurIPS)},
-  year      = {2026}
-}</pre>
+<section class="col">
+  <h2>Dual World Models</h2>
+  <div class="duo">
+    <div><b>State Transition</b><span>who moves where</span></div>
+    <div><b>Semantic Transition</b><span>what the scene affords</span></div>
   </div>
+  <div class="segview">
+    <div class="seg small" id="seg-tabs" role="group" aria-label="Scene">
+      <button type="button" id="seg-zara" data-src="static/seg_zara.png" aria-pressed="true">Zara01</button>
+      <button type="button" id="seg-hotel" data-src="static/seg_hotel.png" aria-pressed="false">ETH_Hotel</button>
+      <button type="button" id="seg-eth" data-src="static/seg_eth.png" aria-pressed="false">ETH</button>
+    </div>
+    <figure><img id="seg-img" src="static/seg_zara.png" alt="Input images, ground-truth segmentation, and Semantic Transition World Model predictions over time" loading="lazy"></figure>
+  </div>
+</section>
+
+<section class="col">
+  <h2>Scenes</h2>
+  <figure><img src="static/scenes.png" alt="Students003, Hotel, Zara01, ETH, ETH_Hallway and ETH_Intersection rebuilt in Unity" loading="lazy"></figure>
 </section>
 
 <footer class="col">Contact: seong_eun@korea.ac.kr</footer>
@@ -193,10 +207,8 @@ for(const k in SC){const b=document.createElement("button");b.type="button";b.id
   b.onclick=()=>{cur=k;bi=0;render()};scenesEl.appendChild(b)}
 render();
 
-const cb=document.getElementById("copy-bib");
-cb.addEventListener("click",()=>{const t=document.getElementById("bib-text");
-  const sel=()=>{const r=document.createRange();r.selectNodeContents(t);const s=getSelection();s.removeAllRanges();s.addRange(r);cb.textContent="Press Ctrl+C"};
-  try{navigator.clipboard.writeText(t.textContent).then(()=>{cb.textContent="Copied";setTimeout(()=>cb.textContent="Copy",1600)},sel)}catch(e){sel()}});
+const segImg=document.getElementById("seg-img"),segBtns=document.querySelectorAll("#seg-tabs button");
+segBtns.forEach(b=>b.onclick=()=>{segBtns.forEach(x=>x.setAttribute("aria-pressed",x===b));segImg.src=b.dataset.src});
 })();
 </script>
 </body>
