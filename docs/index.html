@@ -10,30 +10,25 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;700&family=Source+Serif+4:opsz,wght@8..60,600&family=Source+Code+Pro:wght@400&display=swap">
 <style>
-/* Layout: conventional single-column paper page, centered header, figures at full column width. */
+/* Layout: conventional paper page. Centered header, then a side-by-side result viewer built from the paper's own rollouts. */
 :root{
   --bg:#FFFFFF;
   --fg:#1C1F23;
   --muted:#5F6670;
   --line:#E3E6EA;
-  --soft:#F5F6F8;
-  --link:#1F5FAD;
+  --soft:#F4F5F7;
+  --stage:#ECEEF1;
   --accent:#D9362C;
-  --flag:#1E9CC4;
-  --road:#3A434C;
-  --walk:#C9CFD5;
-  --paint:#EEF1F3;
-  --ink:#14202B;
+  --btn:#33373C;
+  --btn-fg:#FFFFFF;
   --f-title:"Source Serif 4",Georgia,serif;
   --f-body:"Noto Sans","Segoe UI",Helvetica,Arial,sans-serif;
   --f-mono:"Source Code Pro",ui-monospace,Consolas,monospace;
 }
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
-  --bg:#121417;--fg:#E4E7EB;--muted:#9AA3AD;--line:#2A2F35;--soft:#1A1E22;--link:#7FB0EA;
-  --accent:#FF5A4E;--flag:#45C0E6;--road:#222B33;--walk:#38434D;--paint:#8A98A4;--ink:#0B1015;color-scheme:dark}}
+  --bg:#121417;--fg:#E4E7EB;--muted:#9AA3AD;--line:#2A2F35;--soft:#1A1E22;--stage:#181C20;--accent:#FF5A4E;--btn:#E4E7EB;--btn-fg:#121417;color-scheme:dark}}
 :root[data-theme="dark"]{
-  --bg:#121417;--fg:#E4E7EB;--muted:#9AA3AD;--line:#2A2F35;--soft:#1A1E22;--link:#7FB0EA;
-  --accent:#FF5A4E;--flag:#45C0E6;--road:#222B33;--walk:#38434D;--paint:#8A98A4;--ink:#0B1015;color-scheme:dark}
+  --bg:#121417;--fg:#E4E7EB;--muted:#9AA3AD;--line:#2A2F35;--soft:#1A1E22;--stage:#181C20;--accent:#FF5A4E;--btn:#E4E7EB;--btn-fg:#121417;color-scheme:dark}
 
 *{box-sizing:border-box}
 html{color-scheme:light}
@@ -41,13 +36,11 @@ body{margin:0}
 img{max-width:100%}
 body{background:var(--bg);color:var(--fg);font:400 16px/1.7 var(--f-body);
   padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
-a{color:var(--link);text-decoration:none}
-a:hover{text-decoration:underline}
-:focus-visible{outline:2px solid var(--link);outline-offset:2px}
-.col{max-width:920px;margin:0 auto}
-p{margin:0 0 1em}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.col{max-width:960px;margin:0 auto}
+p{margin:0}
 
-header{padding-block:56px 28px;text-align:center}
+header{padding-block:56px 32px;text-align:center}
 h1{font:600 clamp(28px,4.4vw,42px)/1.2 var(--f-title);margin:0 0 6px;text-wrap:balance;letter-spacing:-.01em}
 .sub{font:600 clamp(18px,2.4vw,24px)/1.35 var(--f-title);color:var(--muted);margin:0 0 22px;text-wrap:balance}
 .authors{font-size:18px;margin:0 0 4px;display:flex;flex-wrap:wrap;justify-content:center;gap:2px 20px}
@@ -56,43 +49,51 @@ h1{font:600 clamp(28px,4.4vw,42px)/1.2 var(--f-title);margin:0 0 6px;text-wrap:b
 .note{font-size:13px;color:var(--muted);margin:0 0 14px}
 .venue{font-weight:700;font-size:17px;margin:0 0 20px}
 .links{display:flex;flex-wrap:wrap;justify-content:center;gap:10px}
-.links a,.links span{display:inline-flex;align-items:center;gap:7px;padding:8px 18px;border-radius:999px;background:#33373C;color:#fff;font-size:15px;font-weight:500}
-.links a:hover{background:#111;text-decoration:none}
-.links span{background:var(--soft);color:var(--muted);border:1px solid var(--line)}
+.links span{display:inline-flex;align-items:center;gap:7px;padding:8px 18px;border-radius:999px;font-size:15px;font-weight:500;
+  background:var(--soft);color:var(--muted);border:1px solid var(--line)}
 .links svg{width:16px;height:16px;fill:currentColor}
 
-.street{margin:8px auto 0;border-radius:6px;overflow:hidden;background:#1a1f25;box-shadow:0 12px 40px -18px rgba(0,0,0,.55)}
-.street canvas{display:block;width:100%;height:clamp(300px,46vw,470px)}
+/* result viewer */
+.viewer{background:var(--stage);border-radius:8px;padding:18px clamp(12px,2.4vw,24px) 16px;display:grid;gap:14px}
+.bar{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px}
+.seg{display:flex;flex-wrap:wrap;gap:4px;background:var(--bg);border-radius:999px;padding:4px}
+.seg button{font:500 14px/1 var(--f-body);color:var(--muted);background:none;border:0;border-radius:999px;padding:8px 14px;cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--btn);color:var(--btn-fg)}
+.seg button:hover{color:var(--fg)}
+.seg button[aria-pressed="true"]:hover{color:var(--btn-fg)}
+.vs{display:flex;flex-wrap:wrap;align-items:center;gap:6px;font-size:13px;color:var(--muted)}
+.vs button{position:relative;overflow:hidden;font:500 13px/1 var(--f-body);color:var(--fg);background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:7px 11px;cursor:pointer}
+.vs button[aria-pressed="true"]{border-color:var(--fg)}
+.vs button i{position:absolute;left:0;bottom:0;height:2px;width:0;background:var(--fg)}
+.vs button[aria-pressed="true"] i.run{animation:fill var(--dur) linear forwards}
+@keyframes fill{to{width:100%}}
 
-section{padding-block:40px 8px}
-h2{font:700 26px/1.3 var(--f-body);margin:0 0 16px;text-align:center}
-.lead{font-size:18px;line-height:1.6;text-align:center;max-width:680px;margin:0 auto 4px;text-wrap:balance}
-.just{text-align:justify;hyphens:auto}
-figure{margin:20px 0 8px}
+.rows{display:grid;gap:10px}
+.row{display:grid;grid-template-columns:92px minmax(0,1fr);gap:12px;align-items:center}
+.row .who{font:700 14px/1.3 var(--f-body);text-align:right}
+.row.ours .who{color:var(--accent)}
+.frames{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
+.frames img{display:block;width:100%;height:auto;border-radius:3px;background:var(--soft);transition:opacity .25s}
+.frames img.swap{opacity:0}
+.row.ours .frames img{box-shadow:0 0 0 2px var(--accent)}
+.time{display:grid;grid-template-columns:92px minmax(0,1fr);gap:12px;font:400 12px/1 var(--f-mono);color:var(--muted)}
+.time div{display:flex;align-items:center;gap:8px}
+.time div::after{content:"";flex:1;height:1px;background:currentColor;margin-right:2px}
+.time div span:last-child{order:2}
+.vcap{font-size:13.5px;color:var(--muted);text-align:center}
+@media (max-width:600px){.row,.time{grid-template-columns:minmax(0,1fr)}.row .who{text-align:left}.time>span{display:none}}
+
+section{padding-block:48px 8px}
+h2{font:700 24px/1.3 var(--f-body);margin:0 0 16px;text-align:center}
+.lead{font-size:18px;line-height:1.6;text-align:center;max-width:640px;margin:0 auto 20px;text-wrap:balance}
+figure{margin:0}
 figure img{display:block;width:100%;height:auto;border-radius:3px;background:#fff}
-figcaption{font-size:14px;line-height:1.6;color:var(--muted);margin-top:8px}
-figcaption b{color:var(--fg)}
 
-.eq{overflow-x:auto;text-align:center;font:400 18px/1.4 var(--f-title);padding-block:10px;white-space:nowrap}
-ul.plain{margin:0 0 1em;padding-left:20px}
-ul.plain li{margin-bottom:4px}
-
-.tbl{overflow-x:auto;margin:16px 0 6px}
-table{border-collapse:collapse;margin:0 auto;font-size:14.5px;font-variant-numeric:tabular-nums;min-width:560px;width:100%}
-caption{caption-side:top;text-align:left;font-size:14px;color:var(--muted);padding-bottom:8px}
-caption b{color:var(--fg)}
-th,td{padding:6px 10px;text-align:center;border-bottom:1px solid var(--line)}
-thead th{border-top:1.5px solid var(--fg);border-bottom:1px solid var(--fg);font-weight:700}
-tbody tr:last-child td{border-bottom:1.5px solid var(--fg)}
-th:first-child,td:first-child{text-align:left}
-td.best{font-weight:700}
-tr.grp td{border-top:1px solid var(--muted)}
-tr.ours td{background:var(--soft)}
-
-pre{margin:0;overflow-x:auto;background:var(--soft);border-radius:4px;padding:16px 18px;font:400 13.5px/1.6 var(--f-mono)}
+pre{margin:0;overflow-x:auto;background:var(--soft);border-radius:6px;padding:16px 18px;font:400 13.5px/1.6 var(--f-mono)}
 .bib{position:relative}
 .copy{position:absolute;top:8px;right:8px;font:500 12px var(--f-body);padding:5px 10px;border-radius:4px;border:1px solid var(--line);background:var(--bg);color:var(--fg);cursor:pointer}
 footer{padding-block:48px 40px;font-size:13px;color:var(--muted);text-align:center}
+@media (prefers-reduced-motion:reduce){.frames img{transition:none}.vs button i.run{animation:none}}
 </style>
 </head>
 <body>
@@ -113,39 +114,28 @@ footer{padding-block:48px 40px;font-size:13px;color:var(--muted);text-align:cent
   <div class="links">
     <span><svg viewBox="0 0 24 24"><path d="M6 2h9l5 5v15H6z"/></svg>Paper (coming soon)</span>
     <span><svg viewBox="0 0 24 24"><path d="M4 4h16v16H4z"/></svg>arXiv (coming soon)</span>
-    <a href="https://github.com/seoneun/-NeurIPS-2026-Seeing-Beyond-the-Next-Step" target="_blank" rel="noopener"><svg viewBox="0 0 24 24"><path d="M12 .5a11.5 11.5 0 0 0-3.6 22.4c.6.1.8-.3.8-.6v-2c-3.2.7-3.9-1.5-3.9-1.5-.5-1.3-1.3-1.7-1.3-1.7-1-.7.1-.7.1-.7 1.2.1 1.8 1.2 1.8 1.2 1 1.8 2.8 1.3 3.5 1 .1-.8.4-1.3.7-1.6-2.6-.3-5.3-1.3-5.3-5.7 0-1.3.5-2.3 1.2-3.1-.1-.3-.5-1.5.1-3.1 0 0 1-.3 3.2 1.2a11 11 0 0 1 5.8 0C17.3 4.3 18.3 4.6 18.3 4.6c.6 1.6.2 2.8.1 3.1.8.8 1.2 1.8 1.2 3.1 0 4.4-2.7 5.4-5.3 5.7.4.4.8 1.1.8 2.2v3.3c0 .3.2.7.8.6A11.5 11.5 0 0 0 12 .5z"/></svg>Code</a>
+    <span><svg viewBox="0 0 24 24"><path d="M12 .5a11.5 11.5 0 0 0-3.6 22.4c.6.1.8-.3.8-.6v-2c-3.2.7-3.9-1.5-3.9-1.5-.5-1.3-1.3-1.7-1.3-1.7-1-.7.1-.7.1-.7 1.2.1 1.8 1.2 1.8 1.2 1 1.8 2.8 1.3 3.5 1 .1-.8.4-1.3.7-1.6-2.6-.3-5.3-1.3-5.3-5.7 0-1.3.5-2.300 1.2-3.1-.1-.3-.5-1.5.1-3.1 0 0 1-.3 3.2 1.2a11 11 0 0 1 5.8 0C17.3 4.3 18.3 4.6 18.3 4.6c.6 1.6.2 2.8.1 3.1.8.8 1.2 1.8 1.2 3.1 0 4.4-2.7 5.4-5.3 5.7.4.4.8 1.1.8 2.2v3.3c0 .3.2.7.8.6A11.5 11.5 0 0 0 12 .5z"/></svg>Code (coming soon)</span>
   </div>
 </header>
 
 <div class="col">
-  <div class="street"><canvas id="street" aria-label="Top-down street animation of agents choosing among candidate motions"></canvas></div>
+  <div class="viewer" id="viewer">
+    <div class="bar">
+      <div class="seg" id="scenes" role="group" aria-label="Scene"></div>
+      <div class="vs" id="baselines" role="group" aria-label="Compare with"><span>vs</span></div>
+    </div>
+    <div class="rows">
+      <div class="row"><div class="who" id="base-name"></div><div class="frames" id="base-frames"></div></div>
+      <div class="row ours"><div class="who">Ours</div><div class="frames" id="ours-frames"></div></div>
+    </div>
+    <div class="time"><span></span><div><span>time</span><span>→</span></div></div>
+    <p class="vcap" id="vcap"></p>
+  </div>
 </div>
 
 <section class="col">
   <p class="lead">World models are used only at training time, as a preference oracle. At deployment they are removed and the policy acts in a single forward pass.</p>
-  <figure>
-    <img src="static/teaser.png" alt="Overview of the two-stage training pipeline" loading="lazy">
-  </figure>
-</section>
-
-<section class="col">
-  <h2>Results</h2>
-  <figure>
-    <img src="static/crosswalk.jpg" alt="Crosswalk navigation compared with CCP, CEDRL and GBM" loading="lazy">
-    <figcaption>Crosswalk. Baselines cut across the road; ours stays on the crosswalk.</figcaption>
-  </figure>
-  <figure>
-    <img src="static/group.jpg" alt="Group navigation compared with CCP, CEDRL and GBM" loading="lazy">
-    <figcaption>Group navigation.</figcaption>
-  </figure>
-  <figure>
-    <img src="static/alley.jpg" alt="Narrow alley with an approaching vehicle" loading="lazy">
-    <figcaption>Narrow alley with an approaching vehicle.</figcaption>
-  </figure>
-  <figure>
-    <img src="static/ablation.png" alt="Ours with and without the dual world models" loading="lazy">
-    <figcaption>With and without the dual world models.</figcaption>
-  </figure>
+  <figure><img src="static/teaser.png" alt="Overview of the two-stage training pipeline" loading="lazy"></figure>
 </section>
 
 <section class="col" id="bibtex">
@@ -165,249 +155,48 @@ footer{padding-block:48px 40px;font-size:13px;color:var(--muted);text-align:cent
 
 <script>
 (function(){
+const SC={
+  crosswalk:{name:"Crosswalk",p:"cw",ours:"cw_ours",base:[["gbm","GBM"],["ccp","CCP"],["cedrl","CEDRL"]],
+    cap:"Baselines leave the crosswalk and cut across the road (blue). Ours stays on the crosswalk."},
+  group:{name:"Group",p:"gr",ours:"gr_ours",base:[["gbm","GBM"],["ccp","CCP"],["cedrl","CEDRL"]],
+    cap:"Baselines split the group or drift onto the road. Ours keeps the group together."},
+  alley:{name:"Narrow alley",p:"al",ours:"al_ours",base:[["gbm","GBM"],["ccp","CCP"],["cedrl","CEDRL"],["nowm","w/o world models"]],
+    cap:"A car approaches in a narrow alley. Ours steps aside in time (green)."},
+  ablation:{name:"w/o world models",p:"ab",ours:"ab_ours",base:[["nowm","w/o world models"]],
+    cap:"Without the dual world models, the policy wanders off the crosswalk."}
+};
+const DUR=3800;
+const scenesEl=document.getElementById("scenes"),baseEl=document.getElementById("baselines"),
+  bName=document.getElementById("base-name"),bF=document.getElementById("base-frames"),oF=document.getElementById("ours-frames"),cap=document.getElementById("vcap");
+let cur="crosswalk",bi=0,auto=true,timer=null;
+const reduce=matchMedia("(prefers-reduced-motion: reduce)").matches;
+function imgs(el,key,alt){
+  if(!el.children.length)for(let i=0;i<3;i++){const im=document.createElement("img");im.width=320;im.height=220;el.appendChild(im)}
+  [...el.children].forEach((im,i)=>{const src=`static/f/${key}_${i+1}.jpg`;if(im.getAttribute("src")===src)return;
+    im.classList.add("swap");const pre=new Image();pre.onload=pre.onerror=()=>{im.src=src;im.alt=`${alt}, frame ${i+1}`;im.classList.remove("swap")};pre.src=src})
+}
+function render(){
+  const s=SC[cur],[k,label]=s.base[bi];
+  [...scenesEl.children].forEach(b=>b.setAttribute("aria-pressed",b.dataset.k===cur));
+  baseEl.querySelectorAll("button").forEach(b=>b.remove());
+  s.base.forEach(([kk,ll],j)=>{const b=document.createElement("button");b.type="button";b.id=`base-${cur}-${kk}`;b.innerHTML=`${ll}<i></i>`;
+    b.setAttribute("aria-pressed",j===bi);b.onclick=()=>{auto=false;bi=j;render()};baseEl.appendChild(b)});
+  bName.textContent=label;
+  imgs(bF,`${s.p}_${k}`,label);imgs(oF,s.ours,"Ours");
+  cap.textContent=s.cap;
+  clearTimeout(timer);
+  const live=baseEl.querySelector('button[aria-pressed="true"] i');
+  if(auto&&!reduce&&s.base.length>1){baseEl.style.setProperty("--dur",DUR+"ms");requestAnimationFrame(()=>live.classList.add("run"));
+    timer=setTimeout(()=>{bi=(bi+1)%s.base.length;render()},DUR)}
+}
+for(const k in SC){const b=document.createElement("button");b.type="button";b.id="scene-"+k;b.dataset.k=k;b.textContent=SC[k].name;
+  b.onclick=()=>{cur=k;bi=0;render()};scenesEl.appendChild(b)}
+render();
+
 const cb=document.getElementById("copy-bib");
 cb.addEventListener("click",()=>{const t=document.getElementById("bib-text");
   const sel=()=>{const r=document.createRange();r.selectNodeContents(t);const s=getSelection();s.removeAllRanges();s.addRange(r);cb.textContent="Press Ctrl+C"};
   try{navigator.clipboard.writeText(t.textContent).then(()=>{cb.textContent="Copied";setTimeout(()=>cb.textContent="Copy",1600)},sel)}catch(e){sel()}});
-
-/* street sketch: a signalized intersection at dusk. Red agents score candidate anchors against
-   predicted futures of neighbors and cars (cyan ghosts) and keep to crosswalks. */
-const cv=document.getElementById("street"),g=cv.getContext("2d");
-const reduce=matchMedia("(prefers-reduced-motion: reduce)").matches;
-const K={asphalt:"#1a1f25",walk:"#2a3139",curb:"#3e4953",bld:"#11151a",roof:"#1c2229",roofLine:"#272e37",
-  paint:"rgba(236,240,244,.72)",yellow:"rgba(232,190,90,.5)",red:"#ff4b3e",cyan:"#3fc6ef",ped:"#b9c3cc"};
-const CAR_COLS=["#c9d1d9","#7aa2c8","#d3a54c","#8e99a6","#e06a52","#5f7f9e","#e4e7ea"];
-let W=0,H=0,DPR=1,G={},bg=null,egos=[],crowd=[],cars=[],rings=[],frame=0,running=true;
-const rnd=(a,b)=>a+Math.random()*(b-a);
-function geo(){const rw=Math.max(64,Math.min(124,H*.27)),sw=rw*.42;G={cx:W/2,cy:H/2,rw,sw,h:rw/2,o:rw/2+sw,L:sw*1.35}}
-const inV=x=>Math.abs(x-G.cx)<G.h,inH=y=>Math.abs(y-G.cy)<G.h;
-const inRoad=(x,y)=>inV(x)||inH(y);
-function onCross(x,y){const dx=Math.abs(x-G.cx),dy=Math.abs(y-G.cy);return (inV(x)&&dy>=G.h-1&&dy<=G.o+1)||(inH(y)&&dx>=G.h-1&&dx<=G.o+1)}
-const inBld=(x,y)=>Math.abs(x-G.cx)>G.o&&Math.abs(y-G.cy)>G.o;
-function corner(sx,sy){const o=G.h+G.sw/2;return {x:G.cx+sx*o,y:G.cy+sy*o}}
-function jit(p){const j=G.sw*.2;return {x:p.x+rnd(-j,j),y:p.y+rnd(-j,j)}}
-function rr(c,x,y,w,h,r){c.beginPath();if(c.roundRect)c.roundRect(x,y,w,h,r);else c.rect(x,y,w,h)}
-
-/* ---------- static layer ---------- */
-function paintStatic(){
-  bg=document.createElement("canvas");bg.width=Math.round(W*DPR);bg.height=Math.round(H*DPR);
-  const b=bg.getContext("2d");b.setTransform(DPR,0,0,DPR,0,0);
-  const {cx,cy,h,sw,o}=G;
-  b.fillStyle=K.walk;b.fillRect(0,0,W,H);
-  b.strokeStyle="rgba(255,255,255,.03)";b.lineWidth=1;
-  for(let x=.5;x<W;x+=11){b.beginPath();b.moveTo(x,0);b.lineTo(x,H);b.stroke()}
-  for(let y=.5;y<H;y+=11){b.beginPath();b.moveTo(0,y);b.lineTo(W,y);b.stroke()}
-  for(const sx of[-1,1])for(const sy of[-1,1]){
-    const x0=sx<0?-30:cx+o+7,x1=sx<0?cx-o-7:W+30,y0=sy<0?-30:cy+o+7,y1=sy<0?cy-o-7:H+30;
-    if(x1-x0>20&&y1-y0>20)building(b,x0,y0,x1,y1);
-  }
-  b.fillStyle=K.asphalt;b.fillRect(cx-h,0,2*h,H);b.fillRect(0,cy-h,W,2*h);
-  for(let i=0;i<W*H/70;i++){const x=Math.random()*W,y=Math.random()*H;if(!inRoad(x,y))continue;b.fillStyle=`rgba(255,255,255,${Math.random()*.04})`;b.fillRect(x,y,1.4,1.4)}
-  b.strokeStyle=K.curb;b.lineWidth=2;
-  const seg=(x0,y0,x1,y1)=>{b.beginPath();b.moveTo(x0,y0);b.lineTo(x1,y1);b.stroke()};
-  for(const s of[-1,1]){seg(0,cy+s*h,cx-h,cy+s*h);seg(cx+h,cy+s*h,W,cy+s*h);seg(cx+s*h,0,cx+s*h,cy-h);seg(cx+s*h,cy+h,cx+s*h,H)}
-  b.strokeStyle=K.yellow;b.lineWidth=2;b.setLineDash([16,12]);
-  seg(0,cy,cx-o-6,cy);seg(cx+o+6,cy,W,cy);seg(cx,0,cx,cy-o-6);seg(cx,cy+o+6,cx,H);b.setLineDash([]);
-  b.strokeStyle=K.paint;b.lineWidth=3;
-  seg(cx-o-5,cy,cx-o-5,cy+h-2);seg(cx+o+5,cy-h+2,cx+o+5,cy);seg(cx-h+2,cy-o-5,cx,cy-o-5);seg(cx,cy+o+5,cx+h-2,cy+o+5);
-  b.fillStyle=K.paint;const st=Math.max(9,h/5.5);
-  for(let x=cx-h+4;x<cx+h-5;x+=st){b.fillRect(x,cy-o+3,st*.55,sw-6);b.fillRect(x,cy+h+3,st*.55,sw-6)}
-  for(let y=cy-h+4;y<cy+h-5;y+=st){b.fillRect(cx-o+3,y,sw-6,st*.55);b.fillRect(cx+h+3,y,sw-6,st*.55)}
-  // trees on the building edge, lamps on the curb
-  const trees=[],lamps=[];
-  for(const sy of[-1,1]){const ty=cy+sy*(o+15);for(let x=18;x<W;x+=46)if(Math.abs(x-cx)>o+20)trees.push([x+rnd(-4,4),ty]);
-    const ly=cy+sy*(h+5);for(let x=30;x<W;x+=130)if(Math.abs(x-cx)>o+10)lamps.push([x,ly])}
-  for(const sx of[-1,1]){const tx=cx+sx*(o+15);for(let y=18;y<H;y+=46)if(Math.abs(y-cy)>o+20)trees.push([tx,y+rnd(-4,4)]);
-    const lx=cx+sx*(h+5);for(let y=30;y<H;y+=130)if(Math.abs(y-cy)>o+10)lamps.push([lx,y])}
-  for(const [x,y] of trees){const r=rnd(7,10);b.save();b.shadowColor="rgba(0,0,0,.6)";b.shadowBlur=8;b.shadowOffsetX=3;b.shadowOffsetY=4;
-    b.fillStyle="#1d3f32";b.beginPath();b.arc(x,y,r,0,7);b.fill();b.restore();
-    b.fillStyle="#2b5a47";b.beginPath();b.arc(x-r*.25,y-r*.25,r*.55,0,7);b.fill()}
-  b.globalCompositeOperation="lighter";
-  for(const [x,y] of lamps){const gr=b.createRadialGradient(x,y,0,x,y,52);gr.addColorStop(0,"rgba(255,196,120,.16)");gr.addColorStop(1,"rgba(255,196,120,0)");b.fillStyle=gr;b.fillRect(x-52,y-52,104,104)}
-  b.globalCompositeOperation="source-over";
-  for(const [x,y] of lamps){b.fillStyle="#ffe2b0";b.beginPath();b.arc(x,y,1.8,0,7);b.fill()}
-}
-function building(b,x0,y0,x1,y1){
-  const w=x1-x0,hh=y1-y0,parts=[];
-  if(w>hh*1.25&&w>120){const m=x0+w*rnd(.38,.62);parts.push([x0,y0,m-6,y1],[m+6,y0,x1,y1])}
-  else if(hh>w*1.25&&hh>120){const m=y0+hh*rnd(.38,.62);parts.push([x0,y0,x1,m-6],[x0,m+6,x1,y1])}
-  else parts.push([x0,y0,x1,y1]);
-  for(const [a,c,d,e] of parts){
-    b.save();b.shadowColor="rgba(0,0,0,.6)";b.shadowBlur=20;b.shadowOffsetX=7;b.shadowOffsetY=9;b.fillStyle=K.bld;b.fillRect(a,c,d-a,e-c);b.restore();
-    if(d-a<28||e-c<28)continue;
-    b.fillStyle=K.roof;b.fillRect(a+6,c+6,d-a-12,e-c-12);
-    b.strokeStyle=K.roofLine;b.lineWidth=1;b.strokeRect(a+11.5,c+11.5,d-a-23,e-c-23);
-    const n=Math.floor(rnd(2,6));
-    for(let i=0;i<n&&d-a>50&&e-c>50;i++){const uw=rnd(8,22),uh=rnd(8,16),ux=rnd(a+16,d-16-uw),uy=rnd(c+16,e-16-uh);
-      b.fillStyle="#262e37";b.fillRect(ux,uy,uw,uh);b.fillStyle="rgba(0,0,0,.4)";b.fillRect(ux+uw,uy+2,3,uh);
-      b.fillStyle="rgba(255,255,255,.05)";b.fillRect(ux,uy,uw,1)}
-  }
-}
-
-/* ---------- agents ---------- */
-function newEgo(e){
-  const sx=Math.random()<.5?-1:1,sy=Math.random()<.5?-1:1,P=corner(sx,sy),j=rnd(-.22,.22)*G.sw;
-  if(Math.random()<.5){e.x=sx<0?rnd(6,Math.max(8,P.x*.55)):rnd(W-(W-P.x)*.55,W-6);e.y=P.y+j}
-  else{e.y=sy<0?rnd(6,Math.max(8,P.y*.55)):rnd(H-(H-P.y)*.55,H-6);e.x=P.x+j}
-  let c=[sx,sy],last=Math.random()<.5?0:1;e.route=[jit(corner(...c))];
-  const hops=Math.random()<.55?1:2;
-  for(let k=0;k<hops;k++){last=1-last;c=last?[c[0],-c[1]]:[-c[0],c[1]];e.route.push(jit(corner(...c)))}
-  const Q=corner(...c);
-  e.route.push(last?{x:c[0]<0?-14:W+14,y:Q.y+j}:{x:Q.x+j,y:c[1]<0?-14:H+14});
-  e.trail=[];e.cands=[];e.best=null;e.tick=Math.floor(rnd(0,10));e.vx=e.vy=0;e.hd=null;e.age=0;
-}
-function newWalker(w,init,near){
-  const o=G.h+G.sw/2;
-  if(near){Object.assign(w,{x:near.x+rnd(-7,7)*(near.vy?1:0)-Math.sign(near.vx)*rnd(8,16),y:near.y+rnd(-7,7)*(near.vx?1:0)-Math.sign(near.vy)*rnd(8,16),vx:near.vx,vy:near.vy,trail:[]});return}
-  const horiz=Math.random()<.5,side=Math.random()<.5?-1:1,j=rnd(-.3,.3)*G.sw,dir=Math.random()<.5?-1:1,sp=rnd(.35,.6);
-  if(horiz){w.y=G.cy+side*o+j;w.x=init?rnd(0,W):(dir>0?-8:W+8);w.vx=dir*sp;w.vy=0}
-  else{w.x=G.cx+side*o+j;w.y=init?rnd(0,H):(dir>0?-8:H+8);w.vy=dir*sp;w.vx=0}
-  w.trail=[];
-}
-const LANES=()=>[{axis:"x",dir:1,coord:G.cy+G.h/2},{axis:"x",dir:-1,coord:G.cy-G.h/2},{axis:"y",dir:1,coord:G.cx-G.h/2},{axis:"y",dir:-1,coord:G.cx+G.h/2}];
-function carPos(c,t){const s=c.s+c.dir*c.v*t;return c.axis==="x"?{x:s,y:c.coord,hw:c.len/2,hh:c.wid/2}:{x:c.coord,y:s,hw:c.wid/2,hh:c.len/2}}
-function seed(){
-  egos=[];crowd=[];cars=[];rings=[];
-  const nE=W<560?5:8;for(let i=0;i<nE;i++){const e={};newEgo(e);egos.push(e)}
-  const nG=W<560?5:8;for(let i=0;i<nG;i++){const w={};newWalker(w,true);crowd.push(w);const m=Math.random()<.5?Math.floor(rnd(1,3)):0;for(let k=0;k<m;k++){const v={};newWalker(v,true,w);crowd.push(v)}}
-  for(const L of LANES()){const ext=L.axis==="x"?W:H;for(let k=0;k<2;k++)cars.push({...L,len:G.rw*.36,wid:G.rw*.19,s:ext*(k+rnd(.1,.4))/2,v:1.4,vmax:rnd(1.3,1.8),col:CAR_COLS[Math.floor(Math.random()*CAR_COLS.length)],brake:false})}
-}
-
-/* ---------- consequence scoring ---------- */
-function bez(a,c,b,t){const u=1-t;return {x:u*u*a.x+2*u*t*c.x+t*t*b.x,y:u*u*a.y+2*u*t*c.y+t*t*b.y}}
-function risk(p,t,self){
-  for(const o of crowd)if(Math.hypot(o.x+o.vx*t-p.x,o.y+o.vy*t-p.y)<12)return true;
-  for(const o of egos)if(o!==self&&Math.hypot(o.x+o.vx*t-p.x,o.y+o.vy*t-p.y)<12)return true;
-  for(const c of cars){const q=carPos(c,t);if(Math.abs(p.x-q.x)<q.hw+11&&Math.abs(p.y-q.y)<q.hh+11)return true}
-  return false;
-}
-function plan(e){
-  const gl=e.route[0],sp=.75,base=Math.atan2(gl.y-e.y,gl.x-e.x),Lx=Math.min(G.L,Math.hypot(gl.x-e.x,gl.y-e.y)+6),A={x:e.x,y:e.y};
-  let best=null,bs=-1e9;e.cands=[];
-  for(let i=0;i<11;i++){
-    let c;
-    if(i===10)c={a:A,m:A,b:A,stay:true};
-    else{const ang=base+(i-4.5)*.27,bx=e.x+Math.cos(ang)*Lx,by=e.y+Math.sin(ang)*Lx,k=((i%3)-1)*.3*Lx;
-      c={a:A,m:{x:(e.x+bx)/2-Math.sin(ang)*k,y:(e.y+by)/2+Math.cos(ang)*k},b:{x:bx,y:by},ang}}
-    let s=-Math.hypot(gl.x-c.b.x,gl.y-c.b.y),bad=false;
-    if(c.stay)s-=G.L*.5;else if(e.hd!=null){const da=Math.abs(((c.ang-e.hd)%(2*Math.PI)+3*Math.PI)%(2*Math.PI)-Math.PI);s-=da*9}
-    for(const f of[.25,.5,.75,1]){const p=c.stay?A:bez(c.a,c.m,c.b,f),t=f*Lx/sp;
-      if(!c.stay&&((inRoad(p.x,p.y)&&!onCross(p.x,p.y))||inBld(p.x,p.y)||p.x<-24||p.x>W+24||p.y<-24||p.y>H+24))bad=true;
-      if(!bad&&risk(p,t,e))bad=true}
-    if(bad)s-=1000;c.bad=bad;e.cands.push(c);if(s>bs){bs=s;best=c}
-  }
-  e.best=best;if(Math.random()<.3)rings.push({x:e.x,y:e.y,t:0});
-}
-
-/* ---------- step ---------- */
-function signal(){const t=frame%720;return {x:t<300,y:t>=360&&t<660}}
-function pedIn(x0,x1,y0,y1){for(const p of crowd.concat(egos))if(p.x>x0&&p.x<x1&&p.y>y0&&p.y<y1)return true;return false}
-function carStep(c,sig){
-  const {cx,cy,h,o}=G,ctr=c.axis==="x"?cx:cy,front=c.s+c.dir*c.len/2,ahead=a=>(a-front)*c.dir;let gap=1e9;
-  for(const d of cars)if(d!==c&&d.axis===c.axis&&d.dir===c.dir&&(d.s-c.s)*c.dir>0)gap=Math.min(gap,ahead(d.s-d.dir*d.len/2)-8);
-  for(const [a,b] of[[ctr-o,ctr-h],[ctr+h,ctr+o]]){const near=c.dir>0?a:b;if(ahead(near)<=0)continue;
-    const occ=c.axis==="x"?pedIn(a-5,b+5,cy-h,cy+h):pedIn(cx-h,cx+h,a-5,b+5);if(occ)gap=Math.min(gap,ahead(near)-5)}
-  const stop=c.dir>0?ctr-o:ctr+o;
-  if(ahead(stop)>6){
-    if(!sig[c.axis])gap=Math.min(gap,ahead(stop)-6);
-    for(const d of cars)if(d.axis!==c.axis){const q=carPos(d,0);if(Math.abs(q.x-cx)<h+q.hw&&Math.abs(q.y-cy)<h+q.hh){gap=Math.min(gap,ahead(stop)-6);break}}
-  }
-  const target=Math.min(c.vmax,Math.max(0,gap*.045));
-  c.brake=target<c.v-.01||c.v<.05;
-  c.v+=target>c.v?Math.min(.025,target-c.v):Math.max(-.14,target-c.v);if(gap<=0)c.v=0;
-  c.s+=c.dir*c.v;
-  const ext=c.axis==="x"?W:H;
-  if(c.dir>0&&c.s>ext+c.len)c.s=-c.len-rnd(0,180);
-  if(c.dir<0&&c.s<-c.len)c.s=ext+c.len+rnd(0,180);
-}
-function step(){
-  frame++;const sig=signal();
-  for(const c of cars)carStep(c,sig);
-  for(const w of crowd){
-    const sp=Math.hypot(w.vx,w.vy)||.5,nx=w.x+w.vx*14,ny=w.y+w.vy*14;let blocked=false;
-    for(const c of cars){const q=carPos(c,0);if(Math.abs(nx-q.x)<q.hw+8&&Math.abs(ny-q.y)<q.hh+8){blocked=true;break}}
-    if(blocked){w.hx=w.hx??w.vx;w.hy=w.hy??w.vy;w.vx=0;w.vy=0}else if(w.hx!=null){w.vx=w.hx;w.vy=w.hy;w.hx=w.hy=null}
-    w.x+=w.vx;w.y+=w.vy;
-    if(w.vx||w.vy){w.trail.push([w.x,w.y]);if(w.trail.length>36)w.trail.shift()}
-    if(w.x<-12||w.x>W+12||w.y<-12||w.y>H+12)newWalker(w,false);
-  }
-  for(const e of egos){
-    e.age++;if(e.tick--<=0){plan(e);e.tick=10}
-    if(e.best&&!e.best.stay){const p=bez(e.best.a,e.best.m,e.best.b,.4),dx=p.x-e.x,dy=p.y-e.y,d=Math.hypot(dx,dy)||1;
-      e.vx+=(dx/d*.75-e.vx)*.18;e.vy+=(dy/d*.75-e.vy)*.18}else{e.vx*=.8;e.vy*=.8}
-    e.x+=e.vx;e.y+=e.vy;const s=Math.hypot(e.vx,e.vy);if(s>.2)e.hd=Math.atan2(e.vy,e.vx);
-    if(s>.05||!e.trail.length){e.trail.push([e.x,e.y]);if(e.trail.length>110)e.trail.shift()}
-    const gl=e.route[0];if(Math.hypot(gl.x-e.x,gl.y-e.y)<9){e.route.shift();e.tick=0;if(!e.route.length)newEgo(e)}
-    if(e.age>2600)newEgo(e);
-  }
-  for(const r of rings)r.t++;rings=rings.filter(r=>r.t<42);
-}
-
-/* ---------- draw ---------- */
-function stroke(pts,col,w,a){if(pts.length<2)return;g.globalAlpha=a;g.strokeStyle=col;g.lineWidth=w;g.beginPath();g.moveTo(pts[0][0],pts[0][1]);for(let i=1;i<pts.length;i++)g.lineTo(pts[i][0],pts[i][1]);g.stroke();g.globalAlpha=1}
-function fadeTrail(t,col,w,a){const n=t.length,ch=6;for(let k=0;k<ch;k++){const i0=Math.floor(k*n/ch),i1=Math.min(n,Math.floor((k+1)*n/ch)+1);stroke(t.slice(i0,i1),col,w,a*(k+1)/ch)}}
-function quad(c){g.beginPath();g.moveTo(c.a.x,c.a.y);g.quadraticCurveTo(c.m.x,c.m.y,c.b.x,c.b.y)}
-function drawCar(c){
-  const p=carPos(c,0),L=c.len,Wd=c.wid;g.save();g.translate(p.x,p.y);
-  g.rotate(c.axis==="x"?(c.dir>0?0:Math.PI):(c.dir>0?Math.PI/2:-Math.PI/2));
-  g.globalCompositeOperation="lighter";
-  const lg=g.createLinearGradient(L/2,0,L/2+L*1.7,0);lg.addColorStop(0,"rgba(255,232,180,.28)");lg.addColorStop(1,"rgba(255,232,180,0)");
-  g.fillStyle=lg;g.beginPath();g.moveTo(L/2,-Wd*.38);g.lineTo(L/2+L*1.7,-Wd*1.15);g.lineTo(L/2+L*1.7,Wd*1.15);g.lineTo(L/2,Wd*.38);g.fill();
-  if(c.brake){const bg2=g.createRadialGradient(-L/2,0,0,-L/2,0,L*.7);bg2.addColorStop(0,"rgba(255,50,40,.35)");bg2.addColorStop(1,"rgba(255,50,40,0)");g.fillStyle=bg2;g.fillRect(-L*1.2,-L*.7,L*1.4,L*1.4)}
-  g.globalCompositeOperation="source-over";
-  g.fillStyle="rgba(0,0,0,.5)";rr(g,-L/2+3,-Wd/2+4,L,Wd,5);g.fill();
-  g.fillStyle=c.col;rr(g,-L/2,-Wd/2,L,Wd,5);g.fill();
-  g.fillStyle="rgba(0,0,0,.22)";rr(g,-L*.24,-Wd*.4,L*.46,Wd*.8,3);g.fill();
-  g.fillStyle="rgba(18,26,34,.9)";g.fillRect(L*.13,-Wd*.36,L*.11,Wd*.72);g.fillRect(-L*.34,-Wd*.34,L*.08,Wd*.68);
-  g.fillStyle="rgba(255,255,255,.18)";g.fillRect(-L/2+2,-Wd/2+1,L-4,1.2);
-  g.fillStyle="#fff4d6";g.fillRect(L/2-2.5,-Wd*.42,2.5,Wd*.2);g.fillRect(L/2-2.5,Wd*.22,2.5,Wd*.2);
-  g.fillStyle=c.brake?"#ff3b30":"#7a1d18";g.fillRect(-L/2,-Wd*.42,2.2,Wd*.2);g.fillRect(-L/2,Wd*.22,2.2,Wd*.2);
-  g.restore();
-}
-function draw(){
-  const sig=signal();
-  g.setTransform(1,0,0,1,0,0);g.drawImage(bg,0,0);g.setTransform(DPR,0,0,DPR,0,0);
-  g.lineCap="round";g.lineJoin="round";
-  // signal heads at the inner corners
-  for(const sx of[-1,1])for(const sy of[-1,1]){const x=G.cx+sx*(G.h+6),y=G.cy+sy*(G.h+6);
-    for(const [ax,dx,dy] of[["x",0,sy*5],["y",sx*5,0]]){const on=sig[ax];g.fillStyle=on?"#37d67a":"#ff4b3e";g.shadowColor=g.fillStyle;g.shadowBlur=8;g.beginPath();g.arc(x+dx,y+dy,2.1,0,7);g.fill()}}
-  g.shadowBlur=0;
-  for(const c of cars)drawCar(c);
-  for(const w of crowd){fadeTrail(w.trail,K.ped,2.4,.32);g.fillStyle=K.ped;g.beginPath();g.arc(w.x,w.y,3.3,0,7);g.fill()}
-  // world-model ghosts for a few focus agents
-  g.fillStyle=K.cyan;g.strokeStyle=K.cyan;g.lineWidth=1;
-  egos.slice(0,4).forEach(e=>{
-    for(const o of crowd.concat(egos)){if(o===e||Math.hypot(o.x-e.x,o.y-e.y)>110||(!o.vx&&!o.vy))continue;
-      [20,40,60].forEach((t,i)=>{g.globalAlpha=.55-i*.16;g.beginPath();g.arc(o.x+o.vx*t,o.y+o.vy*t,2.1,0,7);g.fill()})}
-    for(const c of cars){if(c.v<.1)continue;const q0=carPos(c,0);if(Math.hypot(q0.x-e.x,q0.y-e.y)>150)continue;
-      [25,50].forEach((t,i)=>{const q=carPos(c,t);g.globalAlpha=.4-i*.18;g.setLineDash([3,3]);g.strokeRect(q.x-q.hw,q.y-q.hh,q.hw*2,q.hh*2);g.setLineDash([])})}
-  });
-  g.globalAlpha=1;
-  for(const r of rings){g.globalAlpha=.38*(1-r.t/42);g.strokeStyle=K.cyan;g.lineWidth=1.2;g.beginPath();g.arc(r.x,r.y,6+r.t*1.7,0,7);g.stroke()}
-  g.globalAlpha=1;
-  for(const e of egos){
-    for(const c of e.cands){if(c===e.best||c.stay)continue;
-      g.globalAlpha=c.bad?.6:.22;g.strokeStyle=c.bad?K.cyan:"#e8edf1";g.lineWidth=1.3;if(c.bad)g.setLineDash([3,4]);quad(c);g.stroke();g.setLineDash([]);
-      if(c.bad){const s=2.6;g.beginPath();g.moveTo(c.b.x-s,c.b.y-s);g.lineTo(c.b.x+s,c.b.y+s);g.moveTo(c.b.x+s,c.b.y-s);g.lineTo(c.b.x-s,c.b.y+s);g.stroke()}}
-    g.globalAlpha=1;
-    g.globalCompositeOperation="lighter";fadeTrail(e.trail,K.red,9,.16);g.globalCompositeOperation="source-over";
-    fadeTrail(e.trail,K.red,3.6,.95);
-    if(e.best){g.shadowColor=K.red;g.shadowBlur=12;g.strokeStyle=K.red;g.lineWidth=2.6;
-      if(e.best.stay){g.setLineDash([3,3]);g.beginPath();g.arc(e.x,e.y,9+Math.sin(frame*.15)*1.5,0,7);g.stroke();g.setLineDash([])}
-      else{quad(e.best);g.stroke();g.beginPath();g.arc(e.best.b.x,e.best.b.y,3+Math.sin(frame*.18+e.x)*1.2,0,7);g.stroke()}
-      g.shadowBlur=0}
-    g.fillStyle="#fff";g.beginPath();g.arc(e.x,e.y,4.4,0,7);g.fill();g.strokeStyle=K.red;g.lineWidth=2;g.stroke();
-  }
-  const vg=g.createRadialGradient(W/2,H/2,Math.min(W,H)*.35,W/2,H/2,Math.max(W,H)*.75);
-  vg.addColorStop(0,"rgba(5,8,12,0)");vg.addColorStop(1,"rgba(5,8,12,.55)");g.fillStyle=vg;g.fillRect(0,0,W,H);
-}
-function loop(){if(running){step();draw()}requestAnimationFrame(loop)}
-function resize(){const r=cv.getBoundingClientRect();DPR=Math.min(2,devicePixelRatio||1);W=r.width;H=r.height;cv.width=Math.round(W*DPR);cv.height=Math.round(H*DPR);geo();paintStatic();seed();for(let i=0;i<260;i++)step();draw()}
-let rt;addEventListener("resize",()=>{clearTimeout(rt);rt=setTimeout(resize,150)});
-resize();
-if("IntersectionObserver" in window)new IntersectionObserver(es=>{running=es[0].isIntersecting}).observe(cv);
-if(!reduce)loop();
-
 })();
 </script>
 </body>
